@@ -32,7 +32,7 @@ func (u *User) IsAnonymous() bool {
 }
 
 type password struct {
-	plainText *string
+	plainText *string // string pointer to check the nil value
 	hash      []byte
 }
 
