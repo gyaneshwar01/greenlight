@@ -178,12 +178,24 @@ func (app *application) enableCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Vary", "origin")
 
+		w.Header().Add("Vary", "Access-Control-Request-Method")
+
 		origin := r.Header.Get("origin")
 
 		if origin != "" {
 			for i := range app.config.cors.trustedOrigins {
 				if app.config.cors.trustedOrigins[i] == origin {
 					w.Header().Set("Access-Control-Allow-Origin", origin)
+
+					// check if it is a preflight request
+					if r.Method == http.MethodOptions && r.Header.Get("Access-Control-Request-Method") != "" {
+						w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, PUT, PATCH, DELETE")
+						w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
+
+						w.WriteHeader(http.StatusOK)
+						return
+					}
+
 					break
 				}
 			}
